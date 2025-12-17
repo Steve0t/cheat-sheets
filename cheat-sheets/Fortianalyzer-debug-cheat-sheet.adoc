@@ -26,6 +26,11 @@
 |*exe iotop -b -n 1*
 |Display and update every 1 second READ/WRITE statistics for all the processes.
 
+|*dia sys process list*
+|list running processes, like `ps aux` in Linux.
+
+|*dia sys process kill <kill signal> <process id>*
+|Kill a process by its pid. Kill signal can be word or numeric, e.g. `dia sys process kill 9 27034`. 
 
 |*diagnose system print cpuinfo*
 |Display hardware CPU information - vendor, number of CPUs etc.
@@ -42,12 +47,31 @@
 |*diagnose system print  loadavg*
 |Show average system load, analog to the Linux `uptime` command.
 
-|*diagnose system print  netstat*
-|Show established connections to the Fortianalyzer, as well as listening ports. Every logging device can (and usually does) have multiple connections established.
+|*dia sys print uptime*
+|Show FAZ uptime.
 
-|*diagnose system print  route*
-|Show routing table of the Fortianalyzer.
+|*dia sys  admin-session <list/status/kill>*
+|List, kill admin session(s).
 
+|*dia sys ntp status*
+|Show NTP status: IP of the NTP server synchronized to, its startum, etc.
+
+|*dia dvm check-integrity*
+|Check objects db integrity.
+
+|*diagnose sql show db-size*
+|Show SQL database size, when DB is online and accessible will show non 0 size.
+
+|*diagnose sql process list*
+|Connect to the SQ DB and query for its process properties. If the output is empty or
+error - means DB is not running/not available. 
+
+|*diag debug application sqlplugind 8*
+|Enable debug to see if Postgres is running, when it is the output will include something
+like "DEBUG: sqlplugind(28137):pgsvr_main.c:132: postgres is running..."
+
+|*diag debug klog*
+|Read kernel messages buffer with Syslog-based severity levels.
 
 |===
 
@@ -56,6 +80,17 @@
 |===
 |Command
 |Description
+
+|*exec log fortianalyzer test-connectivity*
+|Run on Fortigate, tests connectivity to FAZ in real-time
+
+|*diagnose system print  netstat*
+|Show established connections to the Fortianalyzer, as well as listening ports. Every logging device can (and usually does) have multiple connections established.
+
+|*diagnose system route list*, *diagnose sys route6 list*
+|Show routing table
+
+
 
 |*diagnose test application oftpd 3*
 |List all devices sending logs to the Fortianalyzer with their IP addresses, serial numbers, _uptime_ meaning connection establishment uptime, not remote device uptime, and packets received (should be growing).
@@ -72,6 +107,18 @@
 
 |*diagnose sniffer packet any "port 514"*
 |Sniff all packets to/from port 514 used by Fortianalyzer to receive logs from remote devices.
+
+|*diagnose fmnetwork arp list*
+|Show ARP table of the FAZ
+
+|*diagnose fmnetwork interface list*
+|Show FAZ interfaces with errors, MTU, IP address, analog of ipconfig in Linux.
+
+|*diag test app fortilogd 99*
+|Restart the daemon responsible for accepting logs from devices
+
+|*diag test app sqllogd 99*
+|Restart daemon responsible for inserting logs into SQL db.
 
 
 |===
@@ -135,9 +182,8 @@ level support by the disk.
 |Lists all folders (a lot) of the filesystem with their sizes on disk. Also available on
 VM FAZ.
 
-
- 
-
+|*dia sys flash list*
+|List FAZ image stored in the flash, e.g. 
 
 |===
 
@@ -155,8 +201,36 @@ VM FAZ.
 |*diagnose debug vminfo*
 |Show report on Virtual Machine license: whether valid or not, type, licensed  storage volume, licensed log receive rate, licensed maximum device count.
 
+|*dia license list*
+|List all applied licenses on this FAZ.
+
+|*get system loglimits*
+|Show system limits in accepting logs
 
 |===
 
 
+== Rebuilding Database
+[cols=2, options="header"]
+|===
+|Command
+|Description
 
+|*execute sql-local rebuild-db*
+|Start rebuilding the database, will cause FAZ reboot
+
+|*execute sql-local rebuild-adom <AdomName>*
+|Rebuild db of a specific ADOM, does not cause FAZ reboot.
+
+|*diag sql status rebuild-db*
+|Get real-time status of rebuilding. On completion will output "Rebuilding all database
+accomplished on".
+
+|*diagnose sql remove rebuild-db-flag*
+|Stop the rebuilding. In case it takes too long/stucks the process. 
+
+|*config sys sql / set start-time 00:00 2000/01/01*
+|Change how much data to include in new rebuilt database, following with `exe sql-local
+rebuild-db`
+
+|===
